@@ -1,0 +1,34 @@
+{
+    "word_kind": {
+        "with_gender": [
+            {
+                "english": "the school",
+                "eng_gen": null,
+                "gender": "die",
+                "german": "Schule"
+            },
+            {
+                "english": "the teacher",
+                "eng_gen": "m",
+                "gender": "der",
+                "german": "Lehrer"
+            },
+            {
+                "english": "the girl",
+                "eng_gen": null,
+                "gender": "das",
+                "german": "Mädchen"
+            }
+        ],
+        "no_gender": [
+            {
+                "english": "to see",
+                "german": "sehen"
+            },
+            {
+                "english": "to read",
+                "german": "lesen"
+            }
+        ]
+    }
+}
