@@ -2,22 +2,58 @@
     "word_kind": {
         "with_gender": [
             {
-                "english": "the school",
-                "eng_gen": null,
-                "gender": "die",
-                "german": "Schule"
+                "gender_type": "F",
+                "fields": {
+                    "english": "the school",
+                    "eng_gen": null,
+                    "gender": "die",
+                    "german": "Schule"
+                }
             },
             {
-                "english": "the teacher",
-                "eng_gen": "m",
-                "gender": "der",
-                "german": "Lehrer"
+                "gender_type": "M",
+                "fields": {
+                    "english": "the teacher",
+                    "eng_gen": "m",
+                    "gender": "der",
+                    "german": "Lehrer"
+                }
             },
             {
-                "english": "the girl",
-                "eng_gen": null,
-                "gender": "das",
-                "german": "Mädchen"
+                "gender_type": "N",
+                "fields": {
+                    "english": "the girl",
+                    "eng_gen": null,
+                    "gender": "das",
+                    "german": "M\u00e4dchen"
+                }
+            },
+            {
+                "gender_type": "F",
+                "fields": {
+                    "english": "the mother",
+                    "eng_gen": null,
+                    "gender": "die",
+                    "german": "Mutter"
+                }
+            },
+            {
+                "gender_type": "M",
+                "fields": {
+                    "english": "the father",
+                    "eng_gen": "m",
+                    "gender": "der",
+                    "german": "Vater"
+                }
+            },
+            {
+                "gender_type": "N",
+                "fields": {
+                    "english": "the child",
+                    "eng_gen": null,
+                    "gender": "das",
+                    "german": "Kind"
+                }
             }
         ],
         "no_gender": [
@@ -30,5 +66,6 @@
                 "german": "lesen"
             }
         ]
-    }
+    },
+    "mistakes": []
 }
