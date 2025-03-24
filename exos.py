@@ -3,11 +3,32 @@ import json
 
 
 def create_dics(json_dic):
-    gender_dic = json_dic["word_kind"]["with_gender"]
+    gender_dic = [word["fields"] for word in json_dic["word_kind"]["with_gender"]]
     mistakes_dic = json_dic.get("mistakes", [])
     nogender_dic = json_dic["word_kind"]["no_gender"]
+    full_dic = json_dic["word_kind"]["with_gender"]
     all_dic = gender_dic + nogender_dic
-    return gender_dic, mistakes_dic, all_dic
+    return gender_dic, mistakes_dic, all_dic, full_dic
+
+def select_mode():
+    mode = input("""
+Do you want to study gender only? [1]
+Review your mistakes? [2]
+Study words from a specific gender? [3]
+Or study full translations? [4]
+
+""")
+    while mode not in {"1", "2", "3", "4"}:
+        mode = input("Please only enter 1, 2, 3 or 4 :) : ")
+        
+    return mode
+
+def gen_choice():
+        # function to choose the gender
+        choice = input("Which gender do you wish to review: F, M or N?\n").strip().upper()
+        while choice not in ("F", "M", "N"):
+            choice = input("Wrong gender, choose betwenn F, M or N: ").strip().upper()
+        return choice
 
 def gender_only(dic):
     errors = 0
@@ -28,6 +49,26 @@ def gender_only(dic):
             guess = input("Wrong, try again: ")
             errors += 1
         print(f"That's right! The full translation is: '{gender} {german}'")
+        words.remove(word)
+    return errors
+
+def word_only(dic):
+    errors = 0
+    words = dic.copy()
+    while words:
+        word = random.choice(words)
+        english = word.get("english")
+        eng_gen = word.get("eng_gen")
+        gender = word.get("gender")
+        german = word.get("german")
+        
+        print(english)
+        # asks the gender until gotten right
+        guess = input("The German word is: ")
+        while guess != german:
+            guess = input("Wrong, try again: ")
+            errors += 1
+        print(f"That's right!")
         words.remove(word)
     return errors
 
@@ -98,7 +139,7 @@ def remove_errors(file, dic):
 
     # Write the updated data in the file
         with open(file, 'w', encoding="utf8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+            json.dump(data, f, indent=4)
 
     except (FileNotFoundError, ValueError):
         print("Error: Could not write to json :(")
@@ -122,14 +163,10 @@ def write_errors(file, dic):
 play_again = "y"
 while play_again == "y":
     json_dic = read_json("words.json")
-    gender_dic, mistakes_dic, all_dic = create_dics(json_dic)
-    mode = input("""
-Do you want to study gender only? [1]
-Review your mistakes? [2]
-Or study full translations? [3]
-""")
-    while mode not in {"1", "2", "3"}:
-        mode = input("Please only enter 1, 2, or 3 :) : ")
+    gender_dic, mistakes_dic, all_dic, full_dic = create_dics(json_dic)
+
+    mode = select_mode()
+
     if mode == "1":
         print("Ok, let's nail those genders!")
         mistakes = gender_only(gender_dic)
@@ -142,6 +179,12 @@ Or study full translations? [3]
             print("Nothing to review here :)")
             mistakes = 0
         remove_errors("words.json", json_dic)
+    elif mode == "3":
+        choice = gen_choice()
+        gender_study = [item["fields"] for item in full_dic if item["gender_type"] == choice]
+        mistakes = word_only(gender_study)
+        print(f"You made {mistakes} mistakes.")
+
     else:
         print("Let's see those translations")
         mistakes = full_translation(all_dic)
