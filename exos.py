@@ -3,12 +3,21 @@ import json
 
 
 def create_dics(json_dic):
-    gender_dic = [word["fields"] for word in json_dic["word_kind"]["with_gender"]]
-    mistakes_dic = json_dic.get("mistakes", [])
-    nogender_dic = json_dic["word_kind"]["no_gender"]
-    full_dic = json_dic["word_kind"]["with_gender"]
-    all_dic = gender_dic + nogender_dic
-    return gender_dic, mistakes_dic, all_dic, full_dic
+    # creates dictionaries used by the program
+    gender_entries = json_dic['word_kind']['with_gender']
+    gender_words = [word['fields'] for word in gender_entries]
+    nogender_words = json_dic['word_kind']['no_gender']
+    all_words = gender_words + nogender_words
+
+    # loads mistakes if they exist
+    mistakes_list = json_dic.get("mistakes", [])
+
+    return {
+        'gender_entries': gender_entries,
+        'all_words': all_words,
+        'gender_words': gender_words,
+        'mistakes_list': mistakes_list    
+            }
 
 def select_mode():
     mode = input("""
@@ -163,31 +172,40 @@ def write_errors(file, dic):
 play_again = "y"
 while play_again == "y":
     json_dic = read_json("words.json")
-    gender_dic, mistakes_dic, all_dic, full_dic = create_dics(json_dic)
-
+    german_modes = create_dics(json_dic)
+    mistakes_list = german_modes['mistakes_list']
     mode = select_mode()
 
     if mode == "1":
+        # creates a list relevant to this exercise
+        gender_words = german_modes['gender_words']
+
         print("Ok, let's nail those genders!")
-        mistakes = gender_only(gender_dic)
+        mistakes = gender_only(gender_words)
         print(f"You made {mistakes} mistakes.")
     elif mode == "2":
-        if mistakes_dic:
+        if mistakes_list:
             print("Let's fix those mistakes")
-            mistakes = full_translation(mistakes_dic)
+            mistakes = full_translation(mistakes_list)
         else:
             print("Nothing to review here :)")
             mistakes = 0
         remove_errors("words.json", json_dic)
     elif mode == "3":
+        # creates a list relevant to this exercise
+        gender_entries = german_modes['gender_entries']
+
         choice = gen_choice()
-        gender_study = [item["fields"] for item in full_dic if item["gender_type"] == choice]
+        gender_study = [item["fields"] for item in gender_entries if item["gender_type"] == choice]
         mistakes = word_only(gender_study)
         print(f"You made {mistakes} mistakes.")
 
     else:
+        # creates a list relevant to this exercise
+        all_words = german_modes['all_words']
+
         print("Let's see those translations")
-        mistakes = full_translation(all_dic)
+        mistakes = full_translation(all_words)
         write_errors("words.json", json_dic)
         print(f"You made {mistakes} mistakes.")
 
