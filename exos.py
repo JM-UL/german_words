@@ -1,16 +1,41 @@
 import random
 import json
 
+def read_json(file):
+    # opens a json and imports it for python usage
+    try:
+        with open(file, 'r', encoding="utf8") as f:
+            dic = json.load(f)
+
+        # in case the file is new and doesn't have a mistake section yet
+        if "mistakes" not in dic:
+            dic["mistakes"] = []
+
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
+        print("The json is missing or invalid :(")
+        input("Press Enter to exit")
+        return None
+    return dic
 
 def create_dics(json_dic):
-    gender_dic = [word["fields"] for word in json_dic["word_kind"]["with_gender"]]
-    mistakes_dic = json_dic.get("mistakes", [])
-    nogender_dic = json_dic["word_kind"]["no_gender"]
-    full_dic = json_dic["word_kind"]["with_gender"]
-    all_dic = gender_dic + nogender_dic
-    return gender_dic, mistakes_dic, all_dic, full_dic
+    # creates dictionaries used by the program
+    gender_entries = json_dic['word_kind']['with_gender']
+    gender_words = [word['fields'] for word in gender_entries]
+    nogender_words = json_dic['word_kind']['no_gender']
+    all_words = gender_words + nogender_words
+
+    # loads mistakes if they exist
+    mistakes_list = json_dic.get("mistakes", [])
+
+    return {
+        'gender_entries': gender_entries,
+        'all_words': all_words,
+        'gender_words': gender_words,
+        'mistakes_list': mistakes_list    
+            }
 
 def select_mode():
+    # lets the user select the game mode they want
     mode = input("""
 Do you want to study gender only? [1]
 Review your mistakes? [2]
@@ -23,8 +48,54 @@ Or study full translations? [4]
         
     return mode
 
+def gameplay(german_modes):
+    # pretty much the game
+
+    mistakes_list = german_modes['mistakes_list']
+    mode = select_mode()
+
+    if mode == "1":
+        # creates a list relevant to this exercise
+        gender_words = german_modes['gender_words']
+
+        print("Ok, let's nail those genders!")
+        mistakes = gender_only(gender_words)
+    elif mode == "2":
+        if mistakes_list:
+            print("Let's fix those mistakes")
+            mistakes = full_translation(mistakes_list)
+        else:
+            print("Nothing to review here :)")
+            mistakes = 0
+        remove_errors("words.json", json_dic)
+    elif mode == "3":
+        # creates a list relevant to this exercise
+        gender_entries = german_modes['gender_entries']
+
+        choice = gen_choice()
+        gender_study = [item["fields"] for item in gender_entries if item["gender_type"] == choice]
+        mistakes = word_only(gender_study)
+
+    else:
+        # creates a list relevant to this exercise
+        all_words = german_modes['all_words']
+
+        print("Let's see those translations")
+        mistakes = full_translation(all_words)
+        write_errors("words.json", json_dic)
+    
+    return mistakes
+        
+def replay_option():
+        print("Ok, that's it for now!")
+        play_again = input("Want to play again? (y/n): ").strip().lower() #takes into account capital answers
+        while play_again not in {"y", "n"} :
+            play_again = input("Sorry, didn't understand that. Play again? (y/n): ").strip().lower()
+        return play_again
+
+
 def gen_choice():
-        # function to choose the gender
+        # lets the user choose the gender they want to study
         choice = input("Which gender do you wish to review: F, M or N?\n").strip().upper()
         while choice not in ("F", "M", "N"):
             choice = input("Wrong gender, choose betwenn F, M or N: ").strip().upper()
@@ -115,21 +186,6 @@ def full_translation(dic):
             json_dic["mistakes"].append(word)
     return errors
 
-def read_json(file):
-    try:
-        with open(file, 'r', encoding="utf8") as f:
-            dic = json.load(f)
-
-        # in case the file is new and doesn't have a mistake section yet
-        if "mistakes" not in dic:
-            dic["mistakes"] = []
-
-    except (FileNotFoundError, json.JSONDecodeError, ValueError):
-        print("The json is missing or invalid :(")
-        input("Press Enter to exit")
-        return None
-    return dic
-
 def remove_errors(file, dic):
     try:
         data = read_json(file)
@@ -137,8 +193,8 @@ def remove_errors(file, dic):
         for mistake in dic.get("mistakes", []):
             data["mistakes"].remove(mistake)
 
-    # Write the updated data in the file
-        with open(file, 'w', encoding="utf8") as f:
+    # write the updated data in the file
+        with open(file, 'w', encoding='utf8') as f:
             json.dump(data, f, indent=4)
 
     except (FileNotFoundError, ValueError):
@@ -160,38 +216,12 @@ def write_errors(file, dic):
     except (FileNotFoundError, ValueError):
         print("Error: Could not write to json :(")
 
+
 play_again = "y"
 while play_again == "y":
     json_dic = read_json("words.json")
-    gender_dic, mistakes_dic, all_dic, full_dic = create_dics(json_dic)
-
-    mode = select_mode()
-
-    if mode == "1":
-        print("Ok, let's nail those genders!")
-        mistakes = gender_only(gender_dic)
-        print(f"You made {mistakes} mistakes.")
-    elif mode == "2":
-        if mistakes_dic:
-            print("Let's fix those mistakes")
-            mistakes = full_translation(mistakes_dic)
-        else:
-            print("Nothing to review here :)")
-            mistakes = 0
-        remove_errors("words.json", json_dic)
-    elif mode == "3":
-        choice = gen_choice()
-        gender_study = [item["fields"] for item in full_dic if item["gender_type"] == choice]
-        mistakes = word_only(gender_study)
-        print(f"You made {mistakes} mistakes.")
-
-    else:
-        print("Let's see those translations")
-        mistakes = full_translation(all_dic)
-        write_errors("words.json", json_dic)
-        print(f"You made {mistakes} mistakes.")
-
-    print("Ok, that's it for now!")
-    play_again = input("Want to play again? (y/n): ").strip().lower() #takes into account capital answers
-    while play_again not in {"y", "n"} :
-        play_again = input("Sorry, didn't understand that. Play again? (y/n): ").strip().lower()
+    german_modes = create_dics(json_dic)
+    mistakes = gameplay(german_modes)
+    if mistakes:
+        print(f"You made {mistakes} mistakes")
+    play_again = replay_option()
