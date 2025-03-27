@@ -95,7 +95,7 @@ def replay_option():
 
 
 def gen_choice():
-        # let's the user choose the gender they want to study
+        # lets the user choose the gender they want to study
         choice = input("Which gender do you wish to review: F, M or N?\n").strip().upper()
         while choice not in ("F", "M", "N"):
             choice = input("Wrong gender, choose betwenn F, M or N: ").strip().upper()
