@@ -93,33 +93,47 @@ def replay_option():
             play_again = input("Sorry, didn't understand that. Play again? (y/n): ").strip().lower()
         return play_again
 
-
 def gen_choice():
         # lets the user choose the gender they want to study
         choice = input("Which gender do you wish to review: F, M or N?\n").strip().upper()
         while choice not in ("F", "M", "N"):
-            choice = input("Wrong gender, choose betwenn F, M or N: ").strip().upper()
+            choice = input("Wrong gender, choose between F, M or N: ").strip().upper()
         return choice
+
+def get_word(word_list):
+    # gets a word from a list of words
+    word = random.choice(word_list)
+    english = word.get("english")
+    eng_gen = word.get("eng_gen")
+    gender = word.get("gender")
+    german = word.get("german")
+    return word, english, eng_gen, gender, german
+
+def print_word(english, eng_gen):
+    # prints the message that needs to be translated
+    if eng_gen:
+        print(f"{english} ({eng_gen.upper()})")
+    else:
+        print(english)
+
+def guess_word(word, guess_message, found_message):
+        # asks the word until it's found and keeps track of errors
+        errors = 0
+        guess = input(guess_message).strip()
+        while guess != word:
+            print("Wrong, try again ;)")
+            guess = input(guess_message).strip()
+            errors += 1
+        print(found_message)
+        return errors
 
 def gender_only(dic):
     errors = 0
     words = dic.copy()
     while words:
-        word = random.choice(words)
-        english = word.get("english")
-        eng_gen = word.get("eng_gen")
-        gender = word.get("gender")
-        german = word.get("german")
-        if eng_gen:
-            print(f"{english} ({eng_gen.upper()})")
-        else:
-            print(english)
-        # asks the gender until gotten right
-        guess = input("The German gender is: ")
-        while guess != gender:
-            guess = input("Wrong, try again: ")
-            errors += 1
-        print(f"That's right! The full translation is: '{gender} {german}'")
+        word, english, eng_gen, gender, german = get_word(words)
+        print_word(english, eng_gen)
+        errors += guess_word(gender, "The German Gender is: ", f"That's right! The full translation is: '{gender} {german}'")
         words.remove(word)
     return errors
 
@@ -127,19 +141,9 @@ def word_only(dic):
     errors = 0
     words = dic.copy()
     while words:
-        word = random.choice(words)
-        english = word.get("english")
-        eng_gen = word.get("eng_gen")
-        gender = word.get("gender")
-        german = word.get("german")
-        
-        print(english)
-        # asks the gender until gotten right
-        guess = input("The German word is: ")
-        while guess != german:
-            guess = input("Wrong, try again: ")
-            errors += 1
-        print(f"That's right!")
+        word, english, eng_gen, _, german = get_word(words)
+        print_word(english, eng_gen)
+        errors += guess_word(german, "The German word is: ", "That's right!")
         words.remove(word)
     return errors
 
@@ -148,35 +152,20 @@ def full_translation(dic):
     error_list = []
     words = dic.copy()
     while words:
-        word = random.choice(words)
-        english = word.get("english")
-        eng_gen = word.get("eng_gen")
-        gender = word.get("gender")
-        german = word.get("german")
-        # prints the English gender if necessary
-        if eng_gen:
-            print(f"{english} ({eng_gen.upper()})")
-        else:
-            print(english)
+        word, english, eng_gen, gender, german = get_word(words)
+        print_word(english, eng_gen)
         # if there is one, start with the gender (mistakes will be counted)
         # this will loop until gotten right to help memorization
         if gender:
-            guess_gen = input("Let's start with the gender: ").strip() #remove spaces in guesses
-            while guess_gen != gender:
-                guess_gen = input("Wrong, try again: ").strip()
-                errors += 1
-        guess_word = input("The German word (capital letters count): ").strip()
-        if guess_word == (f"{german}"):
+            errors += guess_word(gender, "Let's start with the gender: ", "OK")
+        guess_the_word = input("The German word (capital letters count): ").strip()
+        if guess_the_word == (f"{german}"):
             print("Yep, that's right!")
             words.remove(word)
         # if the translation is wrong the game will move on to another word
         # and come back later to the current one
         else:
-            if gender:
-                print(f"Wrong, the answer was: {gender} {german}")
-            else:
-                print(f"Wrong, the answer was: {german}")
-            
+            print(f"Wrong, the answer was: {gender + ' ' if gender else ''}{german}")
             if word not in error_list:
                 error_list.append(word)
             errors += 1
